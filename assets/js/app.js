@@ -61,6 +61,15 @@ function renderCircles(circlesGroup, newXScale, chosenXaxis) {
   return circlesGroup;
 }
 
+function renderText(txtGroup, newXScale, chosenXaxis) {
+
+    txtGroup.transition()
+      .duration(100)
+      .attr("x", d => (newXScale(d[chosenXAxis])-10));
+  
+    return txtGroup;
+  }
+
 // function used for updating circles group with new tooltip
 function updateToolTip(chosenXAxis, circlesGroup) {
 
@@ -95,13 +104,12 @@ function updateToolTip(chosenXAxis, circlesGroup) {
 d3.csv("/data/data.csv", function(err, healthData) {
   if (err) throw err;
 
-  console.log(healthData);
+  //console.log(healthData);
   // parse data
   healthData.forEach(function(data) {
     data.income = +data.income;
     data.obesity = +data.obesity;
     data.age = +data.age;
-    //data.abbr = +data.abbr;
   });
 
   // xLinearScale function above csv import
@@ -135,10 +143,15 @@ d3.csv("/data/data.csv", function(err, healthData) {
     .attr("cy", d => yLinearScale(d.obesity))
     .attr("r", 20)
     .attr("fill", "red")
-    .attr("opacity", ".75");
+    .attr("opacity", ".65");
 
-    circlesGroup.append("text")
-        .attr("dx", function(d){return -20})
+    //append text in circle
+    var txtGroup = chartGroup.selectAll("text")
+        .data(healthData)
+        .enter()
+        .append("text")
+        .attr("x", d => (xLinearScale(d[chosenXAxis])-10))
+        .attr("y", d => (yLinearScale(d.obesity)+6))
         .text(function(d){return d.abbr});
 
   // Create group for  2 x- axis labels
@@ -195,6 +208,9 @@ d3.csv("/data/data.csv", function(err, healthData) {
 
         // updates tooltips with new info
         circlesGroup = updateToolTip(chosenXAxis, circlesGroup);
+
+        //update text in circle at new values
+        txtGroup = renderText(txtGroup, xLinearScale, chosenXAxis);
 
         // changes classes to change bold text
         if (chosenXAxis === "income") {
